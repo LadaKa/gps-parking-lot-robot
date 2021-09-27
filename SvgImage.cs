@@ -136,7 +136,7 @@ namespace RobotGPSTrajectory
 
             writer.WriteLine
                 ("<ellipse opacity=\"100\" stroke=\"1\" style=\"vector-effect: non-scaling-stroke;\""
-                    + " ry=\"" + pointSize + "\" rx=\"" + pointSize + "\" id=\"svg_1\" cy=\"" + Xs + "\" cx=\"" + Ys
+                    + " ry=\"" + pointSize + "\" rx=\"" + pointSize + "\" id=\"svg_1\" cy=\"" + Ys + "\" cx=\"" + Xs
                     + "\" stroke-width=\"1\" fill=\"" + color + "\"/>");
 
         }
@@ -188,7 +188,7 @@ namespace RobotGPSTrajectory
                 ("<line stroke=\"{5}\" "
                 + " y2=\"{0}\" x2=\"{1}\" y1=\"{2}\" x1=\"{3}\" "
                 + "style=\"stroke: {4}; stroke-width:{5}\"/>",
-                X2s, Y2s, X1s, Y1s, color, stroke.ToString().Replace(",","."));
+                Y2s, X2s, Y1s, X1s, color, stroke.ToString().Replace(",","."));
         }
 
         private static void WriteLastTag(StreamWriter writer)
