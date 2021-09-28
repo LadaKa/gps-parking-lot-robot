@@ -5,9 +5,12 @@ using System.IO;
 
 namespace RobotGPSTrajectory
 {
+    /*
+     *  Parsing and print of coordinates 
+     */
+
     class IOUtils
     {
-        
         public static bool TryParse(string fileName, out List<XYCoordinate> xyCoordinates)
         {
             xyCoordinates = new List<XYCoordinate>();
@@ -17,7 +20,7 @@ namespace RobotGPSTrajectory
                 var reader = new StreamReader(fileName);
                 while (!reader.EndOfStream)
                 {
-                    var line = reader.ReadLine();   //  "50.0884745107823974 14.4043757008512703"
+                    var line = reader.ReadLine();   
                     lineNr++;
                     if (TryParseLatLonCoordinate(line, out XYCoordinate xyCoordinate))
                     {
@@ -59,21 +62,18 @@ namespace RobotGPSTrajectory
 
         public static void PrintAvgCoordinates(
             List<XYCoordinate> xyAvgCoordinates,
-            int step)
+            int step,
+            string originString)
         {
-
+            CoordinateSharp.Coordinate.TryParse(
+                    originString,
+                    out CoordinateSharp.Coordinate origin);
+            var xyOrigin = new XYCoordinate(origin);
             for (int i = 0; i < xyAvgCoordinates.Count; i = i + step)
             {
-                var coord = xyAvgCoordinates[i];
-                Console.WriteLine(
-                    coord.getGeoCoordinate().UTM.Easting.ToString()
-                    + " "
-                    + coord.getGeoCoordinate().UTM.Northing);
+                xyAvgCoordinates[i].Print(xyOrigin);
             }
-            Console.WriteLine(
-                xyAvgCoordinates[xyAvgCoordinates.Count - 1].getGeoCoordinate().UTM.Easting.ToString()
-                + " "
-                + xyAvgCoordinates[xyAvgCoordinates.Count - 1].getGeoCoordinate().UTM.Northing);
+            xyAvgCoordinates[xyAvgCoordinates.Count - 1].Print(xyOrigin);
         }
     }
 }
