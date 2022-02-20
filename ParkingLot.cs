@@ -20,8 +20,7 @@ namespace RobotGPSTrajectory
             List<XYCoordinate> xyAvgCoordinates,
             string doorsCoordinate,
             string originCoordinate,
-            int outputStep,
-            int avgSetSize)
+            int outputStep)
         {
             // parse PLANE_ORIGIN and DOORS coordinates
             if (!(CoordinateSharp.Coordinate.TryParse(
@@ -39,7 +38,7 @@ namespace RobotGPSTrajectory
             // count distancies to DOORS
             var gpsDistance = doors.Get_Distance_From_Coordinate(
                 xyCoordinates.Last().getGeoCoordinate());
-            var avgDistance = doors.Get_Distance_From_Coordinate(
+            var estimatedDistance = doors.Get_Distance_From_Coordinate(
                 xyAvgCoordinates.Last().getGeoCoordinate());
 
             // create svg image
@@ -47,7 +46,7 @@ namespace RobotGPSTrajectory
                 fileName,
                 "Robot on parking lot",
                 "Distance to doors from end position:  "
-                    + avgDistance.Meters.ToString().Substring(0, 4) + " m (AVG " + avgSetSize +"); "
+                    + estimatedDistance.Meters.ToString().Substring(0, 4) + " m (estimate); "
                     + gpsDistance.Meters.ToString().Substring(0, 5) + " m (GPS)",
                 xyCoordinates.Cast<IPointXY>().ToList(),
                 xyAvgCoordinates.Cast<IPointXY>().ToList(),

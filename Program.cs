@@ -14,8 +14,7 @@ namespace RobotGPSTrajectory
     {
         private static readonly string PLANE_ORIGIN = "50°5'18.404 N 14°24'15.307 E";
         private static readonly string DOORS = "50°5'18.475 N 14°24'13.495 E";
-        private static readonly int AVG_SET_SIZE = 10;  // size of moving window for moving average
-        private static readonly int OUTPUT_STEP = 10;   // each (i * OUTPUT_STEP) avg coordinate is printed
+        private static readonly int OUTPUT_STEP = 10;   // each (i * OUTPUT_STEP) trajectory coordinate is printed
 
         static void Main(string[] args)
         {
@@ -27,15 +26,15 @@ namespace RobotGPSTrajectory
 
             if (IOUtils.TryParse(args[0], out List<XYCoordinate> xyCoordinates))
             {
-                var xyAvgCoordinates = 
-                    HaversianAverage.getHaversianAverages(xyCoordinates, AVG_SET_SIZE);
+                var estimatedCoordinates =
+                    Trajectory.getTrajectoryCoordinates(xyCoordinates, 8);
 
-                IOUtils.PrintAvgCoordinates(
-                    xyAvgCoordinates, OUTPUT_STEP, PLANE_ORIGIN);
+               // IOUtils.PrintAvgCoordinates(
+               //     xyAvgCoordinates, OUTPUT_STEP, PLANE_ORIGIN);
 
                 ParkingLot.CreateSvgImageWithDoors(
-                    args[1], xyCoordinates, xyAvgCoordinates, 
-                    DOORS, PLANE_ORIGIN, OUTPUT_STEP, AVG_SET_SIZE);
+                    args[1], xyCoordinates, estimatedCoordinates, 
+                    DOORS, PLANE_ORIGIN, OUTPUT_STEP);
             }
             Console.ReadKey();
         }

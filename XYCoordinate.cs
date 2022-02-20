@@ -1,5 +1,6 @@
 ﻿using CoordinateSharp;
 using System;
+using System.Collections.Generic;
 
 namespace RobotGPSTrajectory
 {
@@ -9,8 +10,8 @@ namespace RobotGPSTrajectory
 
     class XYCoordinate : IPointXY
     {
+        public enum Direction { N, E, S, W };
         private Coordinate geoCoordinate;
-
 
         public XYCoordinate(double latitude, double longitude)
         {
@@ -22,7 +23,85 @@ namespace RobotGPSTrajectory
             geoCoordinate = coordinate;
         }
 
-        public Coordinate getGeoCoordinate()
+        public XYCoordinate shiftXYCoordinateByVerticalDistance(
+            int distance,
+            Direction direction)
+        {
+            var gridXYCoordinates = new List<XYCoordinate>();
+            Coordinate shifted = null;
+            double x_shifted = GetX();
+            double y_shifted = GetY();
+            string utm_shifted; 
+
+            bool valid = false;
+
+            switch (direction)
+            {
+                //  north coordinate 
+                case Direction.N:
+                    y_shifted = y_shifted + distance;
+                    utm_shifted =               //  "34X 551586mE 8921410mN"
+                        (geoCoordinate.UTM.LongZone
+                        + geoCoordinate.UTM.LatZone
+                        + " "
+                        + ((int)GetX()) + "mE "
+                        + ((int)y_shifted) + "mN").Replace(",", ".");
+                    valid = Coordinate.TryParse(
+                        utm_shifted, out shifted);  
+                    break;
+
+                //  east coordinate 
+                case Direction.E:
+                    x_shifted = x_shifted + distance;
+                    utm_shifted =               
+                        (geoCoordinate.UTM.LongZone
+                        + geoCoordinate.UTM.LatZone
+                        + " "
+                        + ((int)x_shifted) + "mE "
+                        + ((int)GetY()) + "mN").Replace(",", ".");
+                    valid = Coordinate.TryParse(
+                        utm_shifted, out shifted);
+                    break;
+
+                //  south coordinate
+                case Direction.S:
+                    y_shifted = y_shifted - distance;
+                    utm_shifted =
+                        (geoCoordinate.UTM.LongZone
+                        + geoCoordinate.UTM.LatZone
+                        + " "
+                        + ((int)GetX()) + "mE "
+                        + ((int)(y_shifted)) + "mN").Replace(",", ".");
+                    valid = Coordinate.TryParse(
+                        utm_shifted, out shifted);  
+                    break;
+
+                //  west coordinate 
+                case Direction.W:
+                    x_shifted = x_shifted - distance;
+                    utm_shifted =
+                        (geoCoordinate.UTM.LongZone
+                        + geoCoordinate.UTM.LatZone
+                        + " "
+                        + ((int)x_shifted) + "mE "
+                        + ((int)GetY()) + "mN").Replace(",", ".");
+                    valid = Coordinate.TryParse(
+                        utm_shifted, out shifted);
+                    break;
+
+                //  invalid input
+                default:
+                    break;
+            }
+
+            if (!valid)
+                throw new Exception(); //!
+
+            return new XYCoordinate(shifted);
+
+        }
+
+    public Coordinate getGeoCoordinate()
         {
             return geoCoordinate;
         }
