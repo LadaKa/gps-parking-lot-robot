@@ -12,6 +12,7 @@ namespace RobotGPSTrajectory
     {
         public enum Direction { N, E, S, W };
         private Coordinate geoCoordinate;
+        private double probability = 0;
 
         public XYCoordinate(double latitude, double longitude)
         {
@@ -24,7 +25,7 @@ namespace RobotGPSTrajectory
         }
 
         public XYCoordinate shiftXYCoordinateByVerticalDistance(
-            int distance,
+            float distance,
             Direction direction)
         {
             var gridXYCoordinates = new List<XYCoordinate>();
@@ -139,5 +140,16 @@ namespace RobotGPSTrajectory
                 string.Format("{0:0.00}", GetTransformedX(origin)),
                 string.Format("{0:0.00}", GetTransformedY(origin)));
         }
+
+        public double getProbability()
+        {
+            return probability;
+        }
+
+        public void setProbability(double value)
+        {
+            probability = value;
+        }
+
     }
 }
