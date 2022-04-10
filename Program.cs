@@ -23,18 +23,35 @@ namespace RobotGPSTrajectory
                 Console.WriteLine("Incorrect args length.");
                 return;
             }
+            if (!CoordinateSharp.Coordinate.TryParse(
+                    PLANE_ORIGIN,
+                    out CoordinateSharp.Coordinate origin))
+            {
 
+                Console.WriteLine("Invalid PLANE_ORIGIN coordinate.");
+                return;
+            }
+
+            var startPosition = new XYCoordinate(origin);
             if (IOUtils.TryParse(args[0], out List<XYCoordinate> xyCoordinates))
             {
                 var estimatedCoordinates =
-                    Trajectory.getTrajectoryCoordinates(xyCoordinates, 8);
+                    Trajectory.getTrajectoryCoordinates(startPosition, xyCoordinates, 8);
+                
+                var selectedEstimatedCoordinates = new List<XYCoordinate>();
 
-               // IOUtils.PrintAvgCoordinates(
-               //     xyAvgCoordinates, OUTPUT_STEP, PLANE_ORIGIN);
+                for (int i = 0; i < estimatedCoordinates.Count; i = i + OUTPUT_STEP)
+                {
+                    Console.WriteLine(i);
+                    selectedEstimatedCoordinates.Add(estimatedCoordinates[i]);
+                }
 
                 ParkingLot.CreateSvgImageWithDoors(
-                    args[1], xyCoordinates, estimatedCoordinates, 
-                    DOORS, PLANE_ORIGIN, OUTPUT_STEP);
+                    args[1], xyCoordinates, selectedEstimatedCoordinates, 
+                    DOORS, PLANE_ORIGIN);
+
+                IOUtils.PrintCoordinates(
+                     selectedEstimatedCoordinates, PLANE_ORIGIN);
             }
             Console.ReadKey();
         }

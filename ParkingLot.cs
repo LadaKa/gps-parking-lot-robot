@@ -17,10 +17,9 @@ namespace RobotGPSTrajectory
         public static void CreateSvgImageWithDoors(
             string fileName,
             List<XYCoordinate> xyCoordinates,
-            List<XYCoordinate> xyAvgCoordinates,
+            List<XYCoordinate> xyEstimatedCoordinates,
             string doorsCoordinate,
-            string originCoordinate,
-            int outputStep)
+            string originCoordinate)
         {
             // parse PLANE_ORIGIN and DOORS coordinates
             if (!(CoordinateSharp.Coordinate.TryParse(
@@ -39,7 +38,7 @@ namespace RobotGPSTrajectory
             var gpsDistance = doors.Get_Distance_From_Coordinate(
                 xyCoordinates.Last().getGeoCoordinate());
             var estimatedDistance = doors.Get_Distance_From_Coordinate(
-                xyAvgCoordinates.Last().getGeoCoordinate());
+                xyEstimatedCoordinates.Last().getGeoCoordinate());
 
             // create svg image
             WriteElements(
@@ -49,10 +48,9 @@ namespace RobotGPSTrajectory
                     + estimatedDistance.Meters.ToString().Substring(0, 4) + " m (estimate); "
                     + gpsDistance.Meters.ToString().Substring(0, 5) + " m (GPS)",
                 xyCoordinates.Cast<IPointXY>().ToList(),
-                xyAvgCoordinates.Cast<IPointXY>().ToList(),
+                xyEstimatedCoordinates.Cast<IPointXY>().ToList(),
                 new XYCoordinate(doors),
-                new XYCoordinate(origin),
-                outputStep);
+                new XYCoordinate(origin));
         }
 
 
@@ -63,8 +61,7 @@ namespace RobotGPSTrajectory
             List<IPointXY> black_points,
             List<IPointXY> blue_points,
             IPointXY doors,
-            IPointXY origin,
-            int step)
+            IPointXY origin)
         {
             if (!fileName.EndsWith(SVG))
                 fileName = fileName + SVG;

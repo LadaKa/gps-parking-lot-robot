@@ -60,20 +60,19 @@ namespace RobotGPSTrajectory
             return false;
         }
 
-        public static void PrintAvgCoordinates(
-            List<XYCoordinate> xyAvgCoordinates,
-            int step,
+        public static void PrintCoordinates(
+            List<XYCoordinate> xyCoordinates,
             string originString)
         {
             CoordinateSharp.Coordinate.TryParse(
                     originString,
                     out CoordinateSharp.Coordinate origin);
             var xyOrigin = new XYCoordinate(origin);
-            for (int i = 0; i < xyAvgCoordinates.Count; i = i + step)
+            for (int i = 0; i < xyCoordinates.Count; i = i + 1)
             {
-                xyAvgCoordinates[i].Print(xyOrigin);
+                xyCoordinates[i].Print(xyOrigin);
             }
-            xyAvgCoordinates[xyAvgCoordinates.Count - 1].Print(xyOrigin);
+            xyCoordinates[xyCoordinates.Count - 1].Print(xyOrigin);
         }
     }
 }
