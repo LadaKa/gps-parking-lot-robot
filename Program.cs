@@ -25,8 +25,8 @@ namespace RobotGPSTrajectory
         static void Main(string[] args)
         {
 
-            if (!TryParseInput(
-                args, out XYCoordinate startPosition, out List<XYCoordinate> xyCoordinates))
+            if (!IOUtils.TryParseInput(
+                args, PLANE_ORIGIN, out XYCoordinate startPosition, out List<XYCoordinate> xyCoordinates))
             {
                 return;
             }
@@ -38,7 +38,7 @@ namespace RobotGPSTrajectory
 
             //  each (i * OUTPUT_STEP) trajectory coordinate is selected
             var selectedEstimatedCoordinates =
-                SelectCoordinates(estimatedCoordinates, OUTPUT_STEP);
+                IOUtils.SelectCoordinates(estimatedCoordinates, OUTPUT_STEP);
 
             //  create svg image of selected estimated coordinates
             ParkingLot.CreateSvgImageWithDoors(
@@ -52,54 +52,5 @@ namespace RobotGPSTrajectory
             Console.ReadKey();
         }
 
-
-        private static bool TryParseInput(
-            string[] args,
-            out XYCoordinate startPosition,
-            out List<XYCoordinate> xyCoordinates
-            )
-        {
-            startPosition = null;
-            xyCoordinates = null;
-
-            if (args.Length != 2)
-            {
-                Console.WriteLine("Incorrect args length.");
-                return false;
-            }
-
-            if (!CoordinateSharp.Coordinate.TryParse(
-                    PLANE_ORIGIN,
-                    out CoordinateSharp.Coordinate origin))
-            {
-
-                Console.WriteLine("Invalid PLANE_ORIGIN coordinate.");
-                return false;
-            }
-
-            startPosition = new XYCoordinate(origin);
-            if (!IOUtils.TryParse(args[0], out xyCoordinates))
-            {
-                Console.WriteLine("Invalid coordinates.");
-                return false;
-            }
-
-            return true;
-        }
-
-
-        private static List<XYCoordinate> SelectCoordinates(
-            List<XYCoordinate> xyCoordinates,
-            int output_step)
-        {
-            var selectedCoordinates = new List<XYCoordinate>();
-
-            for (int i = 0; i < xyCoordinates.Count; i = i + OUTPUT_STEP)
-            {
-                selectedCoordinates.Add(xyCoordinates[i]);
-            }
-
-            return selectedCoordinates;
-        }
     }
 }

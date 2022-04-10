@@ -11,6 +11,57 @@ namespace RobotGPSTrajectory
 
     class IOUtils
     {
+        public static bool TryParseInput(
+    string[] args,
+    string plane_origin,
+    out XYCoordinate startPosition,
+    out List<XYCoordinate> xyCoordinates
+    )
+        {
+            startPosition = null;
+            xyCoordinates = null;
+
+            if (args.Length != 2)
+            {
+                Console.WriteLine("Incorrect args length.");
+                return false;
+            }
+
+            if (!CoordinateSharp.Coordinate.TryParse(
+                    plane_origin,
+                    out CoordinateSharp.Coordinate origin))
+            {
+
+                Console.WriteLine("Invalid PLANE_ORIGIN coordinate.");
+                return false;
+            }
+
+            startPosition = new XYCoordinate(origin);
+            if (!IOUtils.TryParse(args[0], out xyCoordinates))
+            {
+                Console.WriteLine("Invalid coordinates.");
+                return false;
+            }
+
+            return true;
+        }
+
+
+        public static List<XYCoordinate> SelectCoordinates(
+            List<XYCoordinate> xyCoordinates,
+            int output_step)
+        {
+            var selectedCoordinates = new List<XYCoordinate>();
+
+            for (int i = 0; i < xyCoordinates.Count; i = i + output_step)
+            {
+                selectedCoordinates.Add(xyCoordinates[i]);
+            }
+
+            return selectedCoordinates;
+        }
+
+
         public static bool TryParse(string fileName, out List<XYCoordinate> xyCoordinates)
         {
             xyCoordinates = new List<XYCoordinate>();
@@ -20,7 +71,7 @@ namespace RobotGPSTrajectory
                 var reader = new StreamReader(fileName);
                 while (!reader.EndOfStream)
                 {
-                    var line = reader.ReadLine();   
+                    var line = reader.ReadLine();
                     lineNr++;
                     if (TryParseLatLonCoordinate(line, out XYCoordinate xyCoordinate))
                     {
@@ -45,8 +96,8 @@ namespace RobotGPSTrajectory
         private static bool TryParseLatLonCoordinate(string line, out XYCoordinate xyCoordinate)
         {
             var lineWords = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-            
-            if (lineWords.Length == 2 
+
+            if (lineWords.Length == 2
                 && double.TryParse(
                     lineWords[0], System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out double lat)
                 && double.TryParse(
