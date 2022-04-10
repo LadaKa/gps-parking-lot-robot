@@ -8,54 +8,61 @@ namespace RobotGPSTrajectory
         public static List<XYCoordinate> getTrajectoryCoordinates(
             XYCoordinate startPosition,
             List<XYCoordinate> measuredCoordinates,
-            int radius)
+            float startRadius,
+            float radius,
+            float gridCellSize)
         {
             measuredCoordinates.Insert(0, startPosition);
-            var trajectoryLenght = measuredCoordinates.Count;
 
-            for (int i = 1; i < measuredCoordinates.Count;i++)
-            {
-                Console.WriteLine(measuredCoordinates[i].getHaversianDistanceInMeters(measuredCoordinates[i - 1]));
-            }
-            var states = new List<XYCoordinate>[trajectoryLenght];
-            states[0] = getXYCoordinatesGrid(measuredCoordinates[0], 0.5f, 0.5f);
-            float p = 1f / states[0].Count;
-            foreach (XYCoordinate coordinate in states[0])
-            {
-                coordinate.setProbability(p);
-            }
-            states[1] = getXYCoordinatesGrid(measuredCoordinates[1], radius, 1f);
-            foreach (XYCoordinate coordinate in states[1])
-            {
-                setProbability(coordinate, states[0], 0.5f, radius);
-            }
+            //  get coordinate grids around measured positions and its weights
+            var states = GetStatesWeight(measuredCoordinates, startRadius, radius, gridCellSize);
 
-            for (int i = 2; i < trajectoryLenght; i++)
-            {
-                var measuredCoordinate = measuredCoordinates[i];
-                states[i] = getXYCoordinatesGrid(measuredCoordinate, radius, 1f);
-                foreach (XYCoordinate coordinate in states[i])
-                {
-                    setProbability(coordinate, states[i - 1], radius, radius);
-                }
-            }
-
-            List<XYCoordinate> trajectoryCoordinates = new List<XYCoordinate>();
-            foreach (var state in states)
-            {
-                var maxProbCoordinate = state[0];
-                foreach (XYCoordinate coordinate in state)
-                {
-                    if (coordinate.getProbability() > maxProbCoordinate.getProbability())
-                        maxProbCoordinate = coordinate;
-                }
-                trajectoryCoordinates.Add(maxProbCoordinate);
-            }
-
-            return trajectoryCoordinates; 
+            //  select coordinate with maximal weight from each grid
+            return SelectCoordinatesByWeight(states);
         }
 
 
+        private static List<XYCoordinate>[] GetStatesWeight(
+            List<XYCoordinate> measuredCoordinates,
+            float startRadius,
+            float radius,
+            float gridCellSize)
+        {
+            var trajectoryLenght = measuredCoordinates.Count;
+            var states = new List<XYCoordinate>[trajectoryLenght];
+
+            //  initialize grid around start position
+            states[0] = getXYCoordinatesGrid(measuredCoordinates[0], startRadius, startRadius);
+            float startWeight = 1f / states[0].Count;
+            foreach (XYCoordinate coordinate in states[0])
+            {
+                coordinate.setWeight(startWeight);
+            }
+
+            //  initialize grid around first measured position
+            states[1] = getXYCoordinatesGrid(measuredCoordinates[1], radius, gridCellSize);
+            foreach (XYCoordinate coordinate in states[1])
+            {
+                //  set probability by distance to coordinates in start grid
+                setWeight(coordinate, states[0], startRadius, radius);
+            }
+
+            //  initialize grids around other measured position
+            for (int i = 2; i < trajectoryLenght; i++)
+            {
+                states[i] = getXYCoordinatesGrid(measuredCoordinates[i], radius, gridCellSize);
+                foreach (XYCoordinate coordinate in states[i])
+                {
+                    //  set probability by distance to coordinates in previous grid
+                    setWeight(coordinate, states[i - 1], radius, radius);
+                }
+            }
+
+            return states;
+        }
+
+
+        //  get circle grid with centre in xy
         private static List<XYCoordinate> getXYCoordinatesGrid(
             XYCoordinate xy,
             float radius,
@@ -65,7 +72,7 @@ namespace RobotGPSTrajectory
             gridCoordinates.Add(xy);
 
             float radius_pow = radius * radius;
-            for (float i = 0; i <= radius; i = i + cellSize) 
+            for (float i = 0; i <= radius; i = i + cellSize)
             {
                 var east_middle_coord = xy.shiftXYCoordinateByVerticalDistance(i, XYCoordinate.Direction.E);
                 var west_middle_coord = xy.shiftXYCoordinateByVerticalDistance(i, XYCoordinate.Direction.W);
@@ -88,13 +95,15 @@ namespace RobotGPSTrajectory
                     gridCoordinates.Add(west_south_coord);
 
                 }
-            }         
-            
+            }
+
             return gridCoordinates;
         }
 
-        private static void setProbability(
-            XYCoordinate coordinate, 
+
+        //  set probability by distance to coordinates in previous grid
+        private static void setWeight(
+            XYCoordinate coordinate,
             List<XYCoordinate> previousGrid,
             float distance1,
             float distance2
@@ -102,17 +111,35 @@ namespace RobotGPSTrajectory
         {
             double sum = 0;
             var distance = distance1 + distance2;
+
             foreach (XYCoordinate previousCoordinate in previousGrid)
             {
                 if (coordinate.getHaversianDistanceInMeters(previousCoordinate) <= distance)
                 {
-                    sum = sum + previousCoordinate.getProbability();
+                    sum = sum + previousCoordinate.getWeight();
                 }
-                //else
-                //    Console.WriteLine(coordinate.getHaversianDistanceInMeters(previousCoordinate));
             }
-            //Console.WriteLine("p: "+sum/previousGrid.Count);
-            coordinate.setProbability(sum);
+            coordinate.setWeight(sum);
         }
+
+
+        //  select coordinate with maximal weight from each grid
+        private static List<XYCoordinate> SelectCoordinatesByWeight(List<XYCoordinate>[] states)
+        {
+            List<XYCoordinate> trajectoryCoordinates = new List<XYCoordinate>();
+            foreach (var state in states)
+            {
+                var maxWeightCoordinate = state[0];
+                foreach (XYCoordinate coordinate in state)
+                {
+                    if (coordinate.getWeight() > maxWeightCoordinate.getWeight())
+                        maxWeightCoordinate = coordinate;
+                }
+                trajectoryCoordinates.Add(maxWeightCoordinate);
+            }
+
+            return trajectoryCoordinates;
+        }
+
     }
 }

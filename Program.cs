@@ -14,46 +14,92 @@ namespace RobotGPSTrajectory
     {
         private static readonly string PLANE_ORIGIN = "50°5'18.404 N 14°24'15.307 E";
         private static readonly string DOORS = "50°5'18.475 N 14°24'13.495 E";
-        private static readonly int OUTPUT_STEP = 10;   // each (i * OUTPUT_STEP) trajectory coordinate is printed
+
+        private static readonly float GRID_CELL_SIZE = 1f;
+        private static readonly int OUTPUT_STEP = 10;
+
+        //  GPS measurment error
+        private static readonly float START_RADIUS = 0.5f;
+        private static readonly float GPS_RADIUS = 8;
 
         static void Main(string[] args)
         {
+
+            if (!TryParseInput(
+                args, out XYCoordinate startPosition, out List<XYCoordinate> xyCoordinates))
+            {
+                return;
+            }
+
+            //  estimate the trajectory coordinates
+            var estimatedCoordinates =
+                Trajectory.getTrajectoryCoordinates(
+                    startPosition, xyCoordinates, START_RADIUS, GPS_RADIUS, GRID_CELL_SIZE);
+
+            //  each (i * OUTPUT_STEP) trajectory coordinate is selected
+            var selectedEstimatedCoordinates =
+                SelectCoordinates(estimatedCoordinates, OUTPUT_STEP);
+
+            //  create svg image of selected estimated coordinates
+            ParkingLot.CreateSvgImageWithDoors(
+                args[1], xyCoordinates, selectedEstimatedCoordinates,
+                DOORS, PLANE_ORIGIN);
+
+            // print selected estimated coordinates
+            IOUtils.PrintCoordinates(
+                 selectedEstimatedCoordinates, PLANE_ORIGIN);
+
+            Console.ReadKey();
+        }
+
+
+        private static bool TryParseInput(
+            string[] args,
+            out XYCoordinate startPosition,
+            out List<XYCoordinate> xyCoordinates
+            )
+        {
+            startPosition = null;
+            xyCoordinates = null;
+
             if (args.Length != 2)
             {
                 Console.WriteLine("Incorrect args length.");
-                return;
+                return false;
             }
+
             if (!CoordinateSharp.Coordinate.TryParse(
                     PLANE_ORIGIN,
                     out CoordinateSharp.Coordinate origin))
             {
 
                 Console.WriteLine("Invalid PLANE_ORIGIN coordinate.");
-                return;
+                return false;
             }
 
-            var startPosition = new XYCoordinate(origin);
-            if (IOUtils.TryParse(args[0], out List<XYCoordinate> xyCoordinates))
+            startPosition = new XYCoordinate(origin);
+            if (!IOUtils.TryParse(args[0], out xyCoordinates))
             {
-                var estimatedCoordinates =
-                    Trajectory.getTrajectoryCoordinates(startPosition, xyCoordinates, 8);
-                
-                var selectedEstimatedCoordinates = new List<XYCoordinate>();
-
-                for (int i = 0; i < estimatedCoordinates.Count; i = i + OUTPUT_STEP)
-                {
-                    Console.WriteLine(i);
-                    selectedEstimatedCoordinates.Add(estimatedCoordinates[i]);
-                }
-
-                ParkingLot.CreateSvgImageWithDoors(
-                    args[1], xyCoordinates, selectedEstimatedCoordinates, 
-                    DOORS, PLANE_ORIGIN);
-
-                IOUtils.PrintCoordinates(
-                     selectedEstimatedCoordinates, PLANE_ORIGIN);
+                Console.WriteLine("Invalid coordinates.");
+                return false;
             }
-            Console.ReadKey();
+
+            return true;
         }
-    } 
+
+
+        private static List<XYCoordinate> SelectCoordinates(
+            List<XYCoordinate> xyCoordinates,
+            int output_step)
+        {
+            var selectedCoordinates = new List<XYCoordinate>();
+
+            for (int i = 0; i < xyCoordinates.Count; i = i + OUTPUT_STEP)
+            {
+                selectedCoordinates.Add(xyCoordinates[i]);
+            }
+
+            return selectedCoordinates;
+        }
+    }
 }

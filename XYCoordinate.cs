@@ -12,7 +12,7 @@ namespace RobotGPSTrajectory
     {
         public enum Direction { N, E, S, W };
         private Coordinate geoCoordinate;
-        private double probability = 0;
+        private double weight = 0;
 
         public XYCoordinate(double latitude, double longitude)
         {
@@ -96,7 +96,7 @@ namespace RobotGPSTrajectory
             }
 
             if (!valid)
-                throw new Exception(); //!
+                throw new Exception(); // TODO
 
             return new XYCoordinate(shifted);
 
@@ -141,14 +141,14 @@ namespace RobotGPSTrajectory
                 string.Format("{0:0.00}", GetTransformedY(origin)));
         }
 
-        public double getProbability()
+        public double getWeight()
         {
-            return probability;
+            return weight;
         }
 
-        public void setProbability(double value)
+        public void setWeight(double value)
         {
-            probability = value;
+            weight = value;
         }
 
     }

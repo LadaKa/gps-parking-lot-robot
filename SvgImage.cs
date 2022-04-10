@@ -141,7 +141,7 @@ namespace RobotGPSTrajectory
 
         public static double Align(double number, double difference)
         {
-            return ((number - difference) * 10) + 100;  // TODO:    frame + resize param
+            return ((number - difference) * 10) + 100;  
         }
     }
 }
